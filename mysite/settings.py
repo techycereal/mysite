@@ -23,7 +23,7 @@ BASE_DIR = Path(__file__).resolve().parent.parent
 SECRET_KEY = 'django-insecure-l-p!4(*k%$o9l1z^ic1-dj#0pp=q2i44#hj50sb2(*1on6*ts)'
 
 # SECURITY WARNING: don't run with debug turned on in production!
-DEBUG = False
+DEBUG = True
 
 ALLOWED_HOSTS = ['127.0.0.1', 'localhost', 'drawmates.azurewebsites.net']
 CSRF_TRUSTED_ORIGINS = ['https://drawmates.azurewebsites.net']
@@ -99,12 +99,17 @@ CHANNEL_LAYERS = {
     "default": {
         "BACKEND": "channels_redis.core.RedisChannelLayer",
         "CONFIG": {
-            "hosts": [("drawmates.redis.cache.windows.net", 6379)],
-            "password": "UR9rPivViWe7FZnMgEgHiAdT3pFm3e1rlAzCaIByFgk=",
-            "ssl": True
+            "hosts": [
+                {
+                    "host": 'redis-15908.c251.east-us-mz.azure.redns.redis-cloud.com',
+                    "port": 15908,
+                    "password": '1XHT7V2WEGbvBryPsDB8GRGGfHRPjulr',
+                }
+            ],
         },
     },
 }
+
 
 # Database
 # https://docs.djangoproject.com/en/5.0/ref/settings/#databases

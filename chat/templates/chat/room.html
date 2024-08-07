@@ -1,0 +1,260 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %} Home {% endblock %}
+{% block styles %}
+<style>
+    /* Ensure the whiteboard canvas scales with its container */
+    #whiteboard {
+        border: 1px solid black;
+        cursor: crosshair;
+        width: 100%;
+        height: 100%; /* Use full height of its container */
+        max-width: 100%;
+        max-height: 80vh; /* Limit height to 80% of the viewport height */
+    }
+
+    /* Responsive design adjustments */
+    @media (max-width: 768px) {
+        .main {
+            display: flex;
+            flex-direction: column;
+            align-items: stretch;
+            position: relative; /* Ensure the controls are positioned relative to the main area */
+        }
+
+        .sidebar {
+            display: none; /* Hide sidebar on small screens */
+        }
+
+        #whiteboard {
+            height: 400px; /* Adjust height for smaller screens */
+            max-height: none; /* Remove max-height for better control */
+        }
+    }
+
+    @media (min-width: 769px) {
+        .main {
+            display: flex;
+            flex-direction: row;
+            gap: 20px; /* Add gap between main content and sidebar */
+            position: relative; /* Ensure the controls are positioned relative to the main area */
+        }
+
+        .sidebar {
+            display: flex;
+            flex-direction: column;
+            justify-content: flex-start;
+            background-color: black;
+            color: white;
+            padding: 10px;
+            max-width: 300px; /* Limit the width of the sidebar */
+        }
+
+        #whiteboard {
+            height: 600px; /* Default height */
+            max-height: 80vh; /* Limit height to 80% of the viewport height */
+        }
+    }
+    
+    #colorPicker {
+        border: none;
+        width: 40px;
+        height: 40px;
+        cursor: pointer;
+        border-radius: 5px;
+        box-shadow: 0 2px 5px rgba(0, 0, 0, 0.2);
+        -webkit-appearance: none; /* Remove default appearance in WebKit browsers */
+    }
+    
+    #colorPicker::-webkit-color-swatch-wrapper {
+        padding: 0;
+        border-radius: 5px;
+    }
+    
+    #colorPicker::-webkit-color-swatch {
+        border: none;
+        border-radius: 5px;
+    }
+    
+    #eraserButton,
+    #markerButton {
+        border: none;
+        border-radius: 5px;
+        background-color: #f0f0f0;
+        cursor: pointer;
+        box-shadow: 0 2px 5px rgba(0, 0, 0, 0.2);
+        font-size: 16px;
+        padding: 0; /* Remove padding as images will fill the button */
+    }
+    
+    #eraserButton img,
+    #markerButton img {
+        width: 32px; /* Size of the icon */
+        height: 32px; /* Size of the icon */
+    }
+    
+    #eraserButton:hover,
+    #markerButton:hover {
+        background-color: #e0e0e0;
+    }
+
+    /* Positioning color picker, eraser button, and marker button at the bottom right of the main area */
+    .controls {
+        position: absolute;
+        bottom: 20px;
+        right: 20px;
+        display: flex;
+        flex-direction: row;
+        gap: 10px;
+        align-items: center;
+    }
+</style>
+{% endblock %}
+
+{% block sidebar %}
+{% include './chat.html' %}
+{% endblock %}
+
+{% block content %}
+<div class="main" style="flex: 1; display: flex; justify-content: center; align-items: center; position: relative;">
+    <canvas id="whiteboard"></canvas>
+    <div class="controls">
+        <button id="markerButton"><img src="https://drawmatesbucket.s3.us-east-2.amazonaws.com/chat/images/marker_icons.png" alt="Marker Icon"></button>
+        <button id="eraserButton"><img src="https://drawmatesbucket.s3.us-east-2.amazonaws.com/chat/images/erasers.png" alt="Eraser Icon"></button>
+        <input type="color" id="colorPicker" value="#000000">
+    </div>
+</div>
+{{ room_name|json_script:"room-name" }}
+<script>
+    const roomName = JSON.parse(document.getElementById('room-name').textContent);
+    const whiteboardSocket = new WebSocket(
+        'ws://' + window.location.host + '/ws/whiteboard/' + roomName + '/'
+    );
+
+    const canvas = document.getElementById('whiteboard');
+    const context = canvas.getContext('2d');
+    let drawing = false;
+    let prevX = 0;
+    let prevY = 0;
+    let color = document.getElementById('colorPicker').value;
+    let tool = 'brush'; // Default tool
+
+    // Update color when the color picker changes
+    document.getElementById('colorPicker').addEventListener('input', function() {
+        color = this.value;
+    });
+
+    // Change tool when marker or eraser buttons are clicked
+    document.getElementById('eraserButton').addEventListener('click', function() {
+        tool = 'eraser';
+        document.getElementById('eraserButton').style.backgroundColor = '#d0d0d0'; // Highlight the active tool
+        document.getElementById('markerButton').style.backgroundColor = '#f0f0f0'; // Reset other tool
+    });
+
+    document.getElementById('markerButton').addEventListener('click', function() {
+        tool = 'marker';
+        document.getElementById('markerButton').style.backgroundColor = '#d0d0d0'; // Highlight the active tool
+        document.getElementById('eraserButton').style.backgroundColor = '#f0f0f0'; // Reset other tool
+    });
+
+    // Adjust canvas size based on its parent container
+    function resizeCanvas() {
+        canvas.width = canvas.parentElement.clientWidth;
+        canvas.height = canvas.parentElement.clientHeight;
+    }
+
+    window.addEventListener('resize', resizeCanvas);
+    resizeCanvas(); // Initial resize
+
+    whiteboardSocket.onmessage = function(e) {
+        const data = JSON.parse(e.data);
+        if (data.type === 'current_state') {
+            // Draw the initial state on the whiteboard
+            data.state.forEach(drawingData => {
+                drawLine(drawingData);
+            });
+        } else {
+            const drawingData = data.drawing_data;
+            drawLine(drawingData);
+        }
+    };
+
+    function drawLine(drawingData) {
+        context.beginPath();
+        context.moveTo(drawingData.prevX, drawingData.prevY);
+        context.lineTo(drawingData.currX, drawingData.currY);
+        context.strokeStyle = drawingData.color;
+        context.lineWidth = drawingData.lineWidth;
+        context.stroke();
+        context.closePath();
+    }
+
+    function getCanvasCoordinates(e) {
+        const rect = canvas.getBoundingClientRect();
+        const scaleX = canvas.width / rect.width; // Scale factor for width
+        const scaleY = canvas.height / rect.height; // Scale factor for height
+
+        let x, y;
+
+        if (e.touches) {
+            x = (e.touches[0].clientX - rect.left) * scaleX;
+            y = (e.touches[0].clientY - rect.top) * scaleY;
+        } else {
+            x = (e.clientX - rect.left) * scaleX;
+            y = (e.clientY - rect.top) * scaleY;
+        }
+
+        return { x, y };
+    }
+
+    function startDrawing(e) {
+        e.preventDefault(); // Prevent default scrolling behavior
+        drawing = true;
+        const { x, y } = getCanvasCoordinates(e);
+        prevX = x;
+        prevY = y;
+    }
+
+    function stopDrawing(e) {
+        e.preventDefault(); // Prevent default scrolling behavior
+        drawing = false;
+    }
+
+    function draw(e) {
+        e.preventDefault(); // Prevent default scrolling behavior
+        if (drawing) {
+            const { x: currX, y: currY } = getCanvasCoordinates(e);
+
+            whiteboardSocket.send(JSON.stringify({
+                'drawing_data': {
+                    'prevX': prevX,
+                    'prevY': prevY,
+                    'currX': currX,
+                    'currY': currY,
+                    'color': tool === 'eraser' ? '#FFFFFF' : color, // Use white color for eraser
+                    'lineWidth': tool === 'eraser' ? 10 : (tool === 'marker' ? 5 : 2) // Adjust line width based on tool
+                }
+            }));
+
+            prevX = currX;
+            prevY = currY;
+        }
+    }
+
+    // Mouse events
+    canvas.addEventListener('mousedown', startDrawing);
+    canvas.addEventListener('mousemove', draw);
+    canvas.addEventListener('mouseup', stopDrawing);
+    canvas.addEventListener('mouseout', stopDrawing);
+
+    // Touch events
+    canvas.addEventListener('touchstart', function(e) {
+        startDrawing(e);
+        draw(e); // To handle touchstart drawing
+    });
+
+    canvas.addEventListener('touchmove', draw);
+    canvas.addEventListener('touchend', stopDrawing);
+</script>
+{% endblock %}

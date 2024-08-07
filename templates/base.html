@@ -1,0 +1,181 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <script src="https://code.jquery.com/jquery-1.9.1.min.js"></script>
+    <title>{% block title %}{% endblock %}</title>
+    <link href="https://fonts.googleapis.com/css2?family=Baloo+2:wght@400;700&display=swap" rel="stylesheet">
+
+    {% block styles %}{% endblock %}
+    <style>
+        h2 {
+            font-family: 'Baloo 2', cursive;
+            cursor: pointer;
+        }
+        body {
+            margin: 0;
+            display: grid;
+            grid-template-areas: 
+                "header header header"
+                "main main sidebar"
+                "footer footer footer";
+            grid-template-columns: 3fr 1fr;
+            grid-template-rows: auto 1fr auto;
+            height: 100vh;
+        }
+
+        .header {
+            grid-area: header;
+            background-color: #FF6F61;
+            color: white;
+            padding: 10px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            flex-wrap: wrap;
+        }
+
+        .nav-buttons {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .nav-link {
+            text-decoration: none;
+            color: white;
+            padding: 5px;
+            transition: all 0.2s;
+            background-color: #FF6F61;
+            border: none;
+            font-size: large;
+            cursor: pointer;
+            font-family: 'Baloo 2', cursive;
+        }
+
+        .nav-link:hover {
+            background-color: lightgray;
+            opacity: 0.3;
+            color: blueviolet;
+        }
+
+        .main {
+            grid-area: main;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+        }
+
+        .footer {
+            grid-area: footer;
+            background-color: #36454F;
+            color: white;
+            padding: 20px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            flex-wrap: wrap;
+        }
+
+        .sidebar {
+            grid-area: sidebar;
+            background-color: black;
+            color: white;
+            padding: 10px;
+            display: flex;
+            flex-direction: column;
+            justify-content: flex-start;
+        }
+
+        .footer-links, .footer-contact, .footer-social {
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
+        }
+
+        .footer-links a, .footer-social a {
+            text-decoration: none;
+            color: white;
+            transition: color 0.2s;
+        }
+
+        .footer-links a:hover, .footer-social a:hover {
+            color: blueviolet;
+        }
+
+        .footer-social img {
+            width: 20px;
+            height: 20px;
+        }
+
+        /* Responsive Styles */
+        @media (max-width: 768px) {
+            body {
+                grid-template-areas: 
+                    "header"
+                    "main"
+                    "sidebar"
+                    "footer";
+                grid-template-columns: 1fr;
+                grid-template-rows: auto 1fr auto auto;
+            }
+
+            .header, .footer {
+                flex-direction: column;
+                align-items: center;
+            }
+
+            .footer-links, .footer-contact, .footer-social {
+                align-items: center;
+            }
+
+            .footer-social img {
+                width: 30px;
+                height: 30px;
+            }
+            
+        }
+    </style>
+</head>
+<body>
+    <div class="header">
+        <h2 onclick="window.location.href='{% url 'home' %}'">DrawMates</h2>
+        <div class="nav-buttons">
+            <button class="nav-link" onclick="window.location.href='{% url 'home' %}'">Home</button>
+            <button class="nav-link" onclick="window.location.href='{% url 'register' %}'">Register</button>
+            <button class="nav-link" onclick="window.location.href='{% url 'index' %}'">Rooms</button>
+            {% if user.is_authenticated %}
+            <form method="post" action="{% url 'logout' %}" style="display:inline;">
+                {% csrf_token %}
+                <button type="submit" class="nav-link">Logout</button>
+            </form>
+            {% else %}
+            <button class="nav-link" onclick="window.location.href='{% url 'login' %}'">Login</button>
+            {% endif %}
+        </div>
+    </div>
+    <div class="main">
+        {% block content %}{% endblock %}
+    </div>
+    <div class="sidebar">
+        {% block sidebar %}{% endblock %}
+    </div>
+    <div class="footer">
+        <div class="footer-links">
+            <a href="#">About Us</a>
+            <a href="#">Contact</a>
+            <a href="#">Privacy Policy</a>
+        </div>
+        <div class="footer-contact">
+            <p>Email: alexanderjmilliken@gmail.com</p>
+            <p>Phone: +18649792409</p>
+        </div>
+        <div class="footer-social">
+            <a href="#"><img src="https://image.flaticon.com/icons/png/512/2111/2111463.png" alt="Facebook"></a>
+            <a href="#"><img src="https://image.flaticon.com/icons/png/512/733/733579.png" alt="Twitter"></a>
+            <a href="#"><img src="https://image.flaticon.com/icons/png/512/733/733558.png" alt="LinkedIn"></a>
+        </div>
+    </div>
+</body>
+</html>

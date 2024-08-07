@@ -1,0 +1,92 @@
+<div id="chat-room" style="background-color: black; color: white; padding: 10px;">
+    <div id="chat-log" style="border: 1px solid #333; padding: 10px; height: 300px; overflow-y: scroll; margin-bottom: 10px;"></div>
+    <div style="display: flex; align-items: center;">
+        <input type="text" id="chat-message-input" style="flex: 1; padding: 5px; border-radius: 5px; border: 1px solid #333;">
+        <button id="chat-message-submit" style="width: 80px; padding: 5px; border: none; border-radius: 5px; background-color: blueviolet; color: white; cursor: pointer; margin-left: 10px;">Send</button>
+    </div>
+</div>
+
+<style>
+    /* General chat interface styling */
+    #chat-room {
+        background-color: black;
+        color: white;
+        padding: 10px;
+        border-radius: 5px;
+    }
+
+    #chat-log {
+        border: 1px solid #333;
+        padding: 10px;
+        height: 300px;
+        overflow-y: scroll;
+        margin-bottom: 10px;
+        background-color: #1c1c1c; /* Slightly lighter background for better readability */
+        border-radius: 5px;
+    }
+
+    #chat-message-input {
+        flex: 1;
+        padding: 5px;
+        border-radius: 5px;
+        border: 1px solid #333;
+        background-color: #222; /* Match the chat room background */
+        color: white;
+    }
+
+    #chat-message-submit {
+        width: 80px;
+        padding: 5px;
+        border: none;
+        border-radius: 5px;
+        background-color: turquoise; /* Default button color */
+        color: white;
+        cursor: pointer;
+        margin-left: 10px;
+        transition: background-color 0.3s;
+    }
+
+    #chat-message-submit:hover {
+        background-color: teal; /* Button color on hover */
+    }
+</style>
+
+<script>
+    const roomNames = "{{ room_name }}"; // Make sure to properly escape room name if needed
+    const chatSocket = new WebSocket(
+        'ws://' + window.location.host + '/ws/whiteboard/chat/' + encodeURIComponent(roomNames) + '/'
+    );
+
+    chatSocket.onmessage = function(e) {
+        const data = JSON.parse(e.data);
+        const message = data.message;
+        const username = data.username;
+        const chatLog = document.getElementById('chat-log');
+        const messageElement = document.createElement('div');
+        messageElement.textContent = `${username}: ${message}`;
+        chatLog.appendChild(messageElement);
+        chatLog.scrollTop = chatLog.scrollHeight; // Scroll to the bottom of the chat log
+    };
+
+    chatSocket.onclose = function(e) {
+        console.error('Chat socket closed unexpectedly');
+    };
+
+    document.getElementById('chat-message-submit').onclick = function(e) {
+        const messageInputDom = document.getElementById('chat-message-input');
+        const message = messageInputDom.value;
+        if (message.trim() !== '') {
+            chatSocket.send(JSON.stringify({
+                'message': message,
+                'username': '{{user}}'
+            }));
+            messageInputDom.value = '';
+        }
+    };
+
+    document.getElementById('chat-message-input').addEventListener('keypress', function(e) {
+        if (e.key === 'Enter') {
+            document.getElementById('chat-message-submit').click();
+        }
+    });
+</script>

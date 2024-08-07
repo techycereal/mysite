@@ -26,7 +26,7 @@ SECRET_KEY = 'django-insecure-l-p!4(*k%$o9l1z^ic1-dj#0pp=q2i44#hj50sb2(*1on6*ts)
 DEBUG = False
 
 ALLOWED_HOSTS = ['127.0.0.1', 'localhost', 'drawmates.azurewebsites.net']
-
+CSRF_TRUSTED_ORIGINS = ['https://drawmates.azurewebsites.net']
 
 # Application definition
 

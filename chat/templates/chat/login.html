@@ -57,7 +57,7 @@
 {% block content %}
     <div class="formCard">
         <h3>Login</h3>
-        <form method="post">
+        <form method="post" action="{% url 'login' %}">
             {% csrf_token %}
             <div id="usernameInput">
                 <label for="{{ form.username.id_for_label }}">Username</label><br>

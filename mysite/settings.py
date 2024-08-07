@@ -99,7 +99,9 @@ CHANNEL_LAYERS = {
     "default": {
         "BACKEND": "channels_redis.core.RedisChannelLayer",
         "CONFIG": {
-            "hosts": [("127.0.0.1", 6379)],
+            "hosts": [("drawmates.redis.cache.windows.net", 6379)],
+            "password": "UR9rPivViWe7FZnMgEgHiAdT3pFm3e1rlAzCaIByFgk=",
+            "ssl": True
         },
     },
 }

@@ -166,7 +166,5 @@ STATIC_URL = os.getenv('STATIC_URL', 'static_url')
 STATICFILES_STORAGE = 'storages.backends.s3boto3.S3Boto3Storage'
 
 # AWS settings
-AWS_ACCESS_KEY_ID = os.getenv('AWS_ACCESS_KEY', 'access-key')
-AWS_SECRET_ACCESS_KEY = os.getenv('AWS_SECRET_ACCESS_KEY', 'access-key-secret')
 AWS_STORAGE_BUCKET_NAME = os.getenv('AWS_STORAGE_BUCKET_NAME', 'storage-bucket')
 AWS_S3_REGION_NAME = os.getenv('AWS_REGION', 'region')  # e.g., 'us-east-1'

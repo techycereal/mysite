@@ -20,13 +20,13 @@ BASE_DIR = Path(__file__).resolve().parent.parent
 # See https://docs.djangoproject.com/en/5.0/howto/deployment/checklist/
 
 # SECURITY WARNING: keep the secret key used in production secret!
-SECRET_KEY = 'django-insecure-l-p!4(*k%$o9l1z^ic1-dj#0pp=q2i44#hj50sb2(*1on6*ts)'
+SECRET_KEY = os.getenv('SECRET_KEY', 'default-key')
 
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = True
 
-ALLOWED_HOSTS = ['127.0.0.1', 'localhost', 'drawmates.azurewebsites.net']
-CSRF_TRUSTED_ORIGINS = ['https://drawmates.azurewebsites.net']
+ALLOWED_HOSTS = ['127.0.0.1', 'app-envs.eba-mkzqqbgw.us-west-2.elasticbeanstalk.com/', 'app-envs.eba-mkzqqbgw.us-west-2.elasticbeanstalk.com']
+CSRF_TRUSTED_ORIGINS = ['http://app-envs.eba-mkzqqbgw.us-west-2.elasticbeanstalk.com/']
 
 # Application definition
 
@@ -101,9 +101,9 @@ CHANNEL_LAYERS = {
         "CONFIG": {
             "hosts": [
                 {
-                    "host": 'redis-15908.c251.east-us-mz.azure.redns.redis-cloud.com',
-                    "port": 15908,
-                    "password": '1XHT7V2WEGbvBryPsDB8GRGGfHRPjulr',
+                    "host": os.getenv('REDIS_HOST', 'localhost'),
+                    "port": os.getenv('REDIS_PORT', 00000),
+                    "password": os.getenv('REDIS_PASSWORD', 'password'),
                 }
             ],
         },
@@ -162,11 +162,11 @@ SESSION_COOKIE_AGE = 3600
 # https://docs.djangoproject.com/en/5.0/ref/settings/#default-auto-field
 
 DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
-STATIC_URL = 'https://drawmatesbucket.s3.us-east-2.amazonaws.com/'
+STATIC_URL = os.getenv('STATIC_URL', 'static_url')
 STATICFILES_STORAGE = 'storages.backends.s3boto3.S3Boto3Storage'
 
 # AWS settings
-AWS_ACCESS_KEY_ID = 'AKIAQLVQREVUPNJDMFRS'
-AWS_SECRET_ACCESS_KEY = 'Oc5gp2ym29Us/fWqa0acriWB2VSwuimu8UDfJQCr'
-AWS_STORAGE_BUCKET_NAME = 'drawmatesbucket'
-AWS_S3_REGION_NAME = 'us-east-2'  # e.g., 'us-east-1'
+AWS_ACCESS_KEY_ID = os.getenv('AWS_ACCESS_KEY', 'access-key')
+AWS_SECRET_ACCESS_KEY = os.getenv('AWS_SECRET_ACCESS_KEY', 'access-key-secret')
+AWS_STORAGE_BUCKET_NAME = os.getenv('AWS_STORAGE_BUCKET_NAME', 'storage-bucket')
+AWS_S3_REGION_NAME = os.getenv('AWS_REGION', 'region')  # e.g., 'us-east-1'
